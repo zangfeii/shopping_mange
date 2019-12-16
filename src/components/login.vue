@@ -36,8 +36,8 @@ data() {
     return {
         // 表单数据板绑定
         loginForm:{
-            username:'zx',
-            password:'123'
+            username:'admin',
+            password:'123456'
         },
        loginFromRule:{
         //    验证用户名是否正确
@@ -57,10 +57,19 @@ methods: {
           this.$refs.loginFromRef.resetFields();
     },
       login(){
-          this.$refs.loginFromRef.validate((valid => {
+          this.$refs.loginFromRef.validate( async valid => {
             if(!valid) return;
-            this.axios("login",this.loginForm);
-          }))
+          const result = await this.$http.post("login",this.loginForm);
+          console.log(result.data);
+         if(result.data.meta.status !== 200) 
+           return this.$message.error("登陆失败!")
+        this.$message.success("登陆成功!");
+          // 将token保存到seeionStore中,登陆成功后浏览其他页面的身份令牌
+         window.sessionStorage.setItem('token',result.data.data.token);
+         console.log(result.data.data.token)
+         this.$router.push('/home')
+         
+         })
     }
 }
 }
