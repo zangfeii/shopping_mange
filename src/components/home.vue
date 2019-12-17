@@ -1,6 +1,5 @@
 <template>  
-   <el-container class="home-container">
-       
+   <el-container class="home-container"> 
     <el-header>
         <div>
           <img src="" alt="">
@@ -9,20 +8,37 @@
       <el-button type="info" @click="loginout">退出</el-button>
     </el-header>
   <el-container>
-    <el-aside width="200px">
+    <el-aside :width="isCollapse ? '64px':'200px'">
+      <div class="toggle-button" @click="toggleCollapse">|||</div>
         <!-- 侧边栏菜单区域 -->
-        <el-menu background-color="#333744" text-color="#fff" active-text-color="#ffd04b">
+        <!-- unique-opened保证该导航栏只打开一个子菜单  默认为false-->
+        <!-- collapse-transitiond 是否开启折叠动画 -->
+        <!-- router 开启路由模式 默认为false -->
+        <el-menu background-color="#333744" text-color="#fff" active-text-color="#409bff" unique-opened :collapse ='isCollapse' :collapse-transition='false' :router ='true'>
            <!-- 一级菜单 -->
-        <el-submenu index="1">
-             <!-- 一级菜单模板区域 -->
-            <template slot="title">
+           <!-- index = '1' index值都相同 点击一个都会展开次级目录,需要指定不同的 -->
+           <!-- index只能接受字符,不接受数字 需要转化 -->
+          
+        <el-submenu :index="item.id+''" v-for="item in menuList" :key="item.id">
+               <!-- 一级菜单模板区域 -->
+          <template slot="title">
                <!-- 图标 -->
-          <i class="el-icon-location"></i>
-          <!-- 文本 -->
-          <span>导航一</span>
-        </template>
-               <el-menu-item index="1-4-1">选项1</el-menu-item>
-            <!-- <el-submenu index="1-4">
+            <i :class="iconObj[item.id]"></i>
+               <!-- 文本 -->
+            <span>{{item.authName}}</span>
+          </template>
+          <!-- collapse-transitiond 是否开启折叠动画 -->
+        <el-menu-item :index = "'/'+subItem.path" v-for = "subItem in item.children" :key="subItem.id">
+           <template slot="title">
+               <!-- 图标 -->
+            <i class="el-icon-menu"></i>
+               <!-- 文本 -->
+            <span>{{subItem.authName}}</span>
+          </template>
+        </el-menu-item>
+          
+<!--            
+           <el-submenu index="1-4">
                 <template slot="title">选项4</template>
               <el-menu-item index="1-4-1">选项1</el-menu-item>
             </el-submenu> -->
@@ -44,19 +60,34 @@
             <i class="el-icon-setting"></i>
             <span slot="title">导航四</span>
         </el-menu-item> -->
-    </el-menu>
+      </el-menu>
     </el-aside>
-    <el-main>Main</el-main>
+       
+    <el-main>
+      <router-view></router-view>
+    </el-main>
   </el-container>
 </el-container>
 </template>
 
 
 <script>
+
+
 export default {   
     data() {
         return {
-            menuList:[]
+            menuList:[],
+            iconObj:{
+              // 一级菜单id
+              '125':'el-icon-user-solid',
+              '103':'el-icon-s-ticket',
+              '101':'el-icon-s-goods',
+              '102':'el-icon-s-order',
+              '145':'el-icon-s-marketing'
+            },
+            // 是否折叠
+            isCollapse:false
         }
     },
   created() {
@@ -72,13 +103,17 @@ export default {
       },
     //   获取左侧菜单的数据
      async getMenuList(){
-         const res = await this.$http.get('menus');
+         const {data:res} = await this.$http.get('menus');
          console.log("左侧数据获取:");
          console.log(res);
-         if(res.data.data.mteta.status !== 200)
-           return this.$message.error(res.data.meta.msg)
-        else this.menuList = res.data.data
+         if(res.meta.status !== 200)
+           return this.$message.error(res.meta.msg)
+        else this.menuList = res.data
 
+      },
+      // 点击折叠展开菜单
+      toggleCollapse(){
+        this. isCollapse = ! this.isCollapse
       }
   }
 }
@@ -112,5 +147,21 @@ export default {
 
 .el-main{
     background:#eaedf1;
+}
+
+/* 解决 左侧栏当子菜单展开时 会有细小的突出部分 */
+.el-menu{
+  border-right: none;
+}
+
+.toggle-button{
+  background:#4a5064;
+  color: #eaedf1;
+  font-size: 10xp;
+  line-height: 24px;
+  text-align: center;
+  letter-spacing: 0.2em;
+  /* 鼠标放上去成小手 */
+  cursor: pointer;
 }
 </style>
