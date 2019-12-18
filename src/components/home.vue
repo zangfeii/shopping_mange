@@ -14,7 +14,7 @@
         <!-- unique-opened保证该导航栏只打开一个子菜单  默认为false-->
         <!-- collapse-transitiond 是否开启折叠动画 -->
         <!-- router 开启路由模式 默认为false -->
-        <el-menu background-color="#333744" text-color="#fff" active-text-color="#409bff" unique-opened :collapse ='isCollapse' :collapse-transition='false' :router ='true'>
+        <el-menu background-color="#333744" text-color="#fff" active-text-color="#409bff" unique-opened :collapse ='isCollapse' :collapse-transition='false' :router ='true' :default-active='activePath'>
            <!-- 一级菜单 -->
            <!-- index = '1' index值都相同 点击一个都会展开次级目录,需要指定不同的 -->
            <!-- index只能接受字符,不接受数字 需要转化 -->
@@ -87,12 +87,17 @@ export default {
               '145':'el-icon-s-marketing'
             },
             // 是否折叠
-            isCollapse:false
+            isCollapse:false,
+            // 保存的激活链接地址
+            activePath:''
         }
     },
   created() {
     //   生命周期函数,页面打开就获取数据
+      
       this.getMenuList()
+      
+      
   },
     
   methods: {
@@ -116,9 +121,9 @@ export default {
         this. isCollapse = ! this.isCollapse
       },
 
-      // 保存链接的激活状态,及点击链接使h
-      saveNavSate(){
-
+      // 保存链接的激活状态到sessionStorage,及点击链接时使当前链接整体为蓝色
+      saveNavSate(activePath){
+           window.sessionStorage.setItem('activePath',activePath)
       }
   }
 }
