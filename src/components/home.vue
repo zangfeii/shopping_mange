@@ -14,12 +14,7 @@
         <!-- unique-opened保证该导航栏只打开一个子菜单  默认为false-->
         <!-- collapse-transitiond 是否开启折叠动画 -->
         <!-- router 开启路由模式 默认为false -->
-<<<<<<< HEAD
         <el-menu background-color="#333744" text-color="#fff" active-text-color="#409bff" unique-opened :collapse ='isCollapse' :collapse-transition='false' :router ='true' :default-active='activePath'>
-=======
-        <el-menu background-color="#333744" text-color="#fff" active-text-color="#409bff" unique-opened 
-        :collapse ='isCollapse' :collapse-transition='false' :router ='true' :default-active="activePath"> 
->>>>>>> home
            <!-- 一级菜单 -->
            <!-- index = '1' index值都相同 点击一个都会展开次级目录,需要指定不同的 -->
            <!-- index只能接受字符,不接受数字 需要转化 -->
@@ -93,25 +88,15 @@ export default {
             },
             // 是否折叠
             isCollapse:false,
-<<<<<<< HEAD
             // 保存的激活链接地址
-=======
-            // 被激活的链接地址,及子菜单点击变蓝
->>>>>>> home
             activePath:''
         }
     },
   created() {
     //   生命周期函数,页面打开就获取数据
-<<<<<<< HEAD
       
       this.getMenuList()
       
-=======
-     this.getMenuList()
-     this.activePath = window.sessionStorage.getItem("activePath")
-     
->>>>>>> home
       
   },
     
@@ -136,19 +121,9 @@ export default {
         this. isCollapse = ! this.isCollapse
       },
 
-<<<<<<< HEAD
       // 保存链接的激活状态到sessionStorage,及点击链接时使当前链接整体为蓝色
       saveNavSate(activePath){
            window.sessionStorage.setItem('activePath',activePath)
-=======
-      // 保存链接的激活状态,及点击链接使h
-      saveNavSate(activePath){
-        // 第一个是建 相当于koken 第二个是值
-        window.sessionStorage.setItem("activePath",activePath)
-        // alert("ssw")
-        this.activePath = activePath
-    
->>>>>>> home
       }
   }
 }
