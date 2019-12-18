@@ -14,7 +14,8 @@
         <!-- unique-opened保证该导航栏只打开一个子菜单  默认为false-->
         <!-- collapse-transitiond 是否开启折叠动画 -->
         <!-- router 开启路由模式 默认为false -->
-        <el-menu background-color="#333744" text-color="#fff" active-text-color="#409bff" unique-opened :collapse ='isCollapse' :collapse-transition='false' :router ='true'>
+        <el-menu background-color="#333744" text-color="#fff" active-text-color="#409bff" unique-opened 
+        :collapse ='isCollapse' :collapse-transition='false' :router ='true' :default-active="activePath"> 
            <!-- 一级菜单 -->
            <!-- index = '1' index值都相同 点击一个都会展开次级目录,需要指定不同的 -->
            <!-- index只能接受字符,不接受数字 需要转化 -->
@@ -28,7 +29,7 @@
             <span>{{item.authName}}</span>
           </template>
                  <!-- index是跳转上的那个路径 用当前请求的path合适 地址加斜线 -->
-        <el-menu-item :index = "'/'+subItem.path" v-for = "subItem in item.children" :key="subItem.id" @click='saveNavSate("/"+subItem.path)'>
+        <el-menu-item :index = "'/'+subItem.path" v-for = "subItem in item.children" :key="subItem.id" @click="saveNavSate('/'+subItem.path)">
            <template slot="title">
                <!-- 图标 -->
             <i class="el-icon-menu"></i>
@@ -87,12 +88,17 @@ export default {
               '145':'el-icon-s-marketing'
             },
             // 是否折叠
-            isCollapse:false
+            isCollapse:false,
+            // 被激活的链接地址,及子菜单点击变蓝
+            activePath:''
         }
     },
   created() {
     //   生命周期函数,页面打开就获取数据
-      this.getMenuList()
+     this.getMenuList()
+     this.activePath = window.sessionStorage.getItem("activePath")
+     
+      
   },
     
   methods: {
@@ -117,8 +123,12 @@ export default {
       },
 
       // 保存链接的激活状态,及点击链接使h
-      saveNavSate(){
-
+      saveNavSate(activePath){
+        // 第一个是建 相当于koken 第二个是值
+        window.sessionStorage.setItem("activePath",activePath)
+        // alert("ssw")
+        this.activePath = activePath
+    
       }
   }
 }
