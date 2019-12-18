@@ -42,6 +42,7 @@ const routes = [
             path: '/welcome',
             component: Welcome
         }, {
+            //和index中的路径一致
             path: '/users',
             component: User
         }]

@@ -27,8 +27,8 @@
                <!-- 文本 -->
             <span>{{item.authName}}</span>
           </template>
-          <!-- collapse-transitiond 是否开启折叠动画 -->
-        <el-menu-item :index = "'/'+subItem.path" v-for = "subItem in item.children" :key="subItem.id">
+                 <!-- index是跳转上的那个路径 用当前请求的path合适 地址加斜线 -->
+        <el-menu-item :index = "'/'+subItem.path" v-for = "subItem in item.children" :key="subItem.id" @click='saveNavSate("/"+subItem.path)'>
            <template slot="title">
                <!-- 图标 -->
             <i class="el-icon-menu"></i>
@@ -114,6 +114,11 @@ export default {
       // 点击折叠展开菜单
       toggleCollapse(){
         this. isCollapse = ! this.isCollapse
+      },
+
+      // 保存链接的激活状态,及点击链接使h
+      saveNavSate(){
+
       }
   }
 }
