@@ -96,6 +96,7 @@ export default {
     //   生命周期函数,页面打开就获取数据
       
       this.getMenuList()
+      this.activePath = window.sessionStorage.getItem('activePath')
       
       
   },
@@ -124,6 +125,8 @@ export default {
       // 保存链接的激活状态到sessionStorage,及点击链接时使当前链接整体为蓝色
       saveNavSate(activePath){
            window.sessionStorage.setItem('activePath',activePath)
+          //  点击另一个链接时 在返回 点击另一个也变蓝
+           this.activePath = activePath
       }
   }
 }
