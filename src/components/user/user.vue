@@ -24,14 +24,18 @@
        </el-row>
 
          <!-- 添加用户弹窗 -->
-       <el-dialog title="提示" :visible.sync="dialogVisible" width="50%">
+       <el-dialog title="添加用户" :visible.sync="dialogVisible" width="50%" @close='addUserClose'>
          <el-form :model="addForm" :rules="addFormRules" ref="addFormRef" label-width="100px">
            <el-form-item label="用户名" prop="username">
              <el-input v-model="addForm.username"></el-input>
            </el-form-item>
 
-            <el-form-item label="密码" prop="password">
-             <el-input v-model="addForm.password"></el-input>
+            <el-form-item label ="密码" prop = "password" >
+             <el-input v-model="addForm.password" type ='password' show-password></el-input>
+           </el-form-item>
+           
+           <el-form-item label="确认密码" prop="checkPassword">
+             <el-input v-model="addForm.checkPassword" type ='password' show-password></el-input>
            </el-form-item>
 
             <el-form-item label="邮箱" prop="email">
@@ -41,15 +45,31 @@
             <el-form-item label="电话号码" prop="mobile">
              <el-input v-model="addForm.mobile"></el-input>
            </el-form-item>
-
-            <el-form-item label="用户名" prop="username">
-             <el-input v-model="addForm.username"></el-input>
-           </el-form-item>
          </el-form>
-
          <span slot="footer" class="dialog-footer">
            <el-button @click="dialogVisible = false">取 消</el-button>
-           <el-button type="primary" @click="dialogVisible = false">确 定</el-button>
+           <el-button type="primary" @click="addUser">确 定</el-button>
+         </span>
+       </el-dialog>
+
+       <!-- 修改用户信息 -->
+       <el-dialog title="修改用户信息" :visible.sync="updatedialogVisible" width="50%" @close='updateClose'>
+          <el-form :model="updateInfo" :rules="updateFormRules" ref="updateFormRef" label-width="100px">
+            <el-form-item label="用户名">
+              <el-input v-model="updateInfo.username" disabled></el-input>
+            </el-form-item>
+
+            <el-form-item label="邮箱" prop = 'email'>
+              <el-input v-model="updateInfo.email"></el-input>
+            </el-form-item>
+
+            <el-form-item label="电话号码" prop = 'mobile'>
+              <el-input v-model="updateInfo.mobile"></el-input>
+            </el-form-item>
+          </el-form>
+         <span slot="footer" class="dialog-footer">
+           <el-button @click="updatedialogVisible = false">取 消</el-button>
+           <el-button type="primary" @click="updataInfo">确 定</el-button>
          </span>
        </el-dialog>
 
@@ -69,13 +89,13 @@
            <!-- <el-switch v-model='userlist.mg_state' active-color="#13ce66" inactive-color="#ff4949"></el-switch> -->
          </el-table-column>
          <el-table-column label='操作' width='180px'>
-           <template >
+           <template slot-scope="scope">
              <el-tooltip  effect="dark" content="修改" placement="top" >
-               <el-button type="primary" icon="el-icon-edit" size='mini'></el-button>
+               <el-button type="primary" icon="el-icon-edit" size='mini' @click="updata(scope.row.id) "></el-button>
              </el-tooltip>
 
              <el-tooltip class="item" effect="dark" content="删除" placement="top">
-               <el-button type="danger" icon="el-icon-delete" size='mini'></el-button>
+               <el-button type="danger" icon="el-icon-delete" size='mini' @click="del(scope.row.id)"></el-button>
              </el-tooltip>
              
              <el-tooltip class="item" effect="dark" content="分配角色" placement="top">
@@ -98,6 +118,47 @@
 <script>
 export default {
   data() {   
+    //  定义验证邮箱的规则
+       var checkEmail = (rule,value,cb) =>{
+         const regEmail = /^([a-zA-Z]|[0-9])(\w|\-)+@[a-zA-Z0-9]+\.([a-zA-Z]{2,4})$/
+         if(regEmail.test(value)){
+           return cb()
+         }
+         else cb(new Error("请输入合法的邮箱"))
+       }
+
+       //定义验证电话号码的规则
+        var checkMobile = (rule,value,callback) =>{
+          const regMobile =/^1[34578]\d{9}$$/
+          if(regMobile.test(value)){
+            return callback()
+          }
+          else callback(new Error("请输入合法的手机号"))
+        };
+
+        //  验证密码
+         var checkpass1 = (rule ,value,callback) =>{
+           if(value === ''){
+             callback(new Error("请输入密码"))
+           }else{
+             if(value !== ''){
+               this.$refs.addFormRef.validateField('checkPassword')
+             }
+             callback();
+           }
+         };
+
+        //确认两次密码是否一致
+        var checkPass  = (rule,value,callback) =>{
+          if(value === ''){
+            callback(new callback('请再次输入密码'))
+          }
+          
+          else if(value !== this.addForm.password){
+            callback(new Error("两次的密码不一致"))
+          }
+          else callback();
+        };
     return {
       // 获取用户列表的参数对象
       queryInfo:{
@@ -112,13 +173,19 @@ export default {
       total:0,
       // 是否添加用户弹窗ru
       dialogVisible:false,
+      //修改用户弹窗设置
+      updatedialogVisible:false,
       // 添加的用户表单数据
+
       addForm:{
         username:"",
         password:'',
         email:"",
-        mobile:''
+        mobile:'',
+        checkPassword:''
       },
+      //保存查询的用户信息
+      updateInfo:{},
 
       // 添加用户时的验证规则
       addFormRules:{
@@ -127,39 +194,42 @@ export default {
           { min: 3, max: 10, message: '长度在 3 到 10个字符', trigger: 'blur' }
         ],
         password:[
-           { required: true, message: '请输密码', trigger: 'blur' },
+           { validator:checkpass1, required: true,  trigger: 'blur' },
            { min: 6, max: 10, message: '长度在 6到 10个字符', trigger: 'blur' }
         ],
+        checkPassword:[
+            { validator:checkPass ,required:true,trigger:'blur' },
+            { min: 6, max: 10, trigger: 'blur' }
+        ],
+
         email:[
             { required: true, message: '请输入邮箱', trigger: 'blur' },
             // { validator:checkEmail,trigger: 'blur'}
-              { type: 'email', message: '请输入正确的邮箱地址', trigger: ['blur', 'change'] }
+              { validator:checkEmail, trigger: 'blur' }
         ],
         mobile:[
-             { required: true, message: '电话号码', trigger: 'blur' },
-             { validator:checkMobile,trigger: 'blur' }
+            //  { required: true, message: '请输入电话号码', trigger: 'blur' },
+                { validator:checkMobile,trigger: 'blur' },
+                { required: true, message: '请输入电话号码', trigger: 'blur' }
+                // { validator:checkEmail,trigger: 'blur'}
+              // { type: 'email', message: '请输入正确的邮箱地址', trigger: ['blur', 'change'] }
         ]
 
+      },
+      //修改用户信息验证规则
+      updateFormRules:{
+        email:[
+           { required: true, message: '请输入邮箱', trigger: 'blur' },
+          { validator:checkEmail, trigger: 'blur' }
+        ],
+        mobile:[
+           { validator:checkMobile,trigger: 'blur' },
+           { required: true, message: '请输入电话号码', trigger: 'blur' }
+        ]
       }
 
     }
-      //定义验证邮箱的规则
-      //  var checkEmail = (rule,value,cb) =>{
-      //    const regEmail = /^([a-zA-Z]|[0-9])(\w|\-)+@[a-zA-Z0-9]+\.([a-zA-Z]{2,4})$/
-      //    if(regEmail.test(value)){
-      //      return cb()
-      //    }
-      //    else cb(new Error("请输入合法的邮箱"))
-      //  }
-
-       //定义验证电话号码的规则
-        var checkMobile = (rule,value,cb) =>{
-          const regMobile =/^1[34578]\d{9}$$/
-          if(regMobile.test(value)){
-            return cb()
-          }
-          else cb(new Error("请输入合法的手机号"))
-        }
+     
   },
   created() {
     this.getUserList()
@@ -194,6 +264,76 @@ export default {
          return this.message.error("更新用户状态失败")
        }
         // this.message.success("sds")
+   },
+  //  监听添加用户框的关闭
+   addUserClose(){
+     this.$refs.addFormRef.resetFields();
+   },
+  //  点击按钮添加用户
+   addUser(){
+     this.$refs.addFormRef.validate( async valid=>{
+      if(!valid) return
+       const  {data:res} =  await this.$http.post('users', this.addForm)
+       if(res.meta.status !== 201){
+        //  console.log(res.meta.status)
+         this.$message.error("添加用户失败")
+       }
+       else {
+         this.$message.success("添加用户成功")
+         this.dialogVisible = false
+         this.getUserList()
+       }
+     })
+   },
+  async updata(id){
+     this.updatedialogVisible = true
+    const {data:res} = await this.$http.get('users/'+id)
+    if(res.meta.status !== 200) 
+      return this.$message.error("查询用户信息失败")
+    this.updateInfo = res.data
+   },
+
+   //监听修改查询用户信息弹窗
+   updateClose(){
+    //  关闭弹窗重置窗口
+     this.$refs.updateFormRef.resetFields()
+   },
+  //  修改用户信息
+   updataInfo(){
+        //预验证信息是否正确
+     this.$refs.updateFormRef.validate( async valid =>{
+       if(!valid) return
+       const {data:res} = await this.$http.put('users/'+this.updateInfo.id,{email:this.updateInfo.email,mobile:this.updateInfo.mobile})
+       if(res.meta.status !==200)
+         return this.$message.error("修改用户信息失败")
+       else{
+         this.updatedialogVisible = false
+         this.getUserList()
+         this.$message.success("修改用户信息成功")
+       }
+     })
+   },
+   //删除用户
+  async del(id){
+       //弹窗提示用户是否删除  确认删除就返回comfirm 取消删除 就返回concel 并用catch 捕获传给res
+    const res = await this.$confirm('此操作将永久删除该用户, 是否继续?', '提示', {
+          confirmButtonText: '确定',
+          cancelButtonText: '取消',
+          type: 'warning'
+          //捕获错误消息 并传给res
+        }).catch(err =>{
+            return err
+        })
+
+      if(res !== 'confirm'){
+        return this.$message.info('已经取消删除')
+      }
+      const result = await this.$http.delete('users/'+id)
+      if(result.data.meta.status !==200){
+        return this.$message.info("删除用户失败")
+      }
+       this.$message.success("删除用户成功")
+       this.getUserList()
    }
   }
 }
