@@ -8,7 +8,10 @@ const Welcome = () =>
     import ('../components/welcome.vue')
 const User = () =>
     import ('../components/user/user.vue')
-
+const Rights = () =>
+    import ('../components/power/rights.vue')
+const Roles = () =>
+    import ('../components/power/roles.vue')
 
 Vue.use(VueRouter)
 
@@ -45,6 +48,12 @@ const routes = [
             //和index中的路径一致
             path: '/users',
             component: User
+        }, {
+            path: '/rights',
+            component: Rights
+        }, {
+            path: '/roles',
+            component: Roles
         }]
     },
 
