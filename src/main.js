@@ -6,6 +6,10 @@ import 'element-ui/lib/theme-chalk/index.css';
 import axios from 'axios';
 import '../src/assets/css/global.css';
 import '../src/assets/css/fonts/iconfont'
+import ZkTable from 'vue-table-with-tree-grid'
+
+//注册为tree-table为全局组件
+Vue.use(ZkTable)
 
 
 
