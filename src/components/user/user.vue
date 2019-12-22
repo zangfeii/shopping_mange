@@ -88,6 +88,7 @@
            </template>
            <!-- <el-switch v-model='userlist.mg_state' active-color="#13ce66" inactive-color="#ff4949"></el-switch> -->
          </el-table-column>
+
          <el-table-column label='操作' width='180px'>
            <template slot-scope="scope">
              <el-tooltip  effect="dark" content="修改" placement="top" >
@@ -99,13 +100,33 @@
              </el-tooltip>
              
              <el-tooltip class="item" effect="dark" content="分配角色" placement="top">
-               <el-button type="warning" icon="el-icon-setting" size='mini'></el-button>
+               <el-button type="warning" icon="el-icon-setting" size='mini' @click="setRole(scope.row)"></el-button>
             </el-tooltip>
-            
            </template>
          </el-table-column>
        </el-table>
        
+      <!-- 分配角色弹窗 -->
+      
+      <el-dialog title="角色分配" :visible.sync="setRoledialogVisible" width="50%" @close="setRoleClose">
+        <div>
+          <p>当前用户:{{userIn.username}}</p>
+          <p>当前用户角色:{{userIn.role_name}}</p>
+          <p>分配新的角色:
+            <el-select v-model="setRoleId" placeholder="请选择">
+              <el-option v-for="item in roleLists" :key="item.id" :label="item.roleName"
+               :value="item.id">
+              </el-option>
+            </el-select>
+          </p>
+        </div>
+        <span slot="footer" class="dialog-footer">
+          <el-button @click="setRoledialogVisible = false">取 消</el-button>
+          <el-button type="primary" @click="saveRoleRight">确 定</el-button>
+       </span>
+      </el-dialog>
+
+           <!-- 页码显示 -->
        <el-pagination @size-change="handleSizeChange" @current-change="handleCurrentChange" :current-page="queryInfo.pagenum" :page-sizes="[1, 2, 5, 10]"
         :page-size="queryInfo.pagesize" layout="total, sizes, prev, pager, next, jumper" :total="total">
        </el-pagination>
@@ -186,6 +207,14 @@ export default {
       },
       //保存查询的用户信息
       updateInfo:{},
+      //分配角色弹窗
+      setRoledialogVisible:false,
+      //分配角色弹窗的用信息
+      userIn:{},
+      //所有的角色列表
+      roleLists:[],
+      //已经选中的id值
+      setRoleId:'',
 
       // 添加用户时的验证规则
       addFormRules:{
@@ -261,7 +290,7 @@ export default {
        if(res.meta.status !== 200)
        {
          userinfo.mg_state =! userinfo.mg_state
-         return this.message.error("更新用户状态失败")
+         return this.$message.error("更新用户状态失败")
        }
         // this.message.success("sds")
    },
@@ -334,7 +363,44 @@ export default {
       }
        this.$message.success("删除用户成功")
        this.getUserList()
-   }
+   },
+
+   //设置角色
+   setRole(userIn){
+      this.userIn = userIn
+      //在展示对话框之前,获取所有凡人角色列表
+      var that = this
+      this.$http.get('roles').then(function(result){
+        var res = result.data
+        if(res.meta.status !==200)
+          return that.$message.error("获取角色失败")
+        that.roleLists = res.data
+
+      })
+      this.setRoledialogVisible = true
+   },
+   //点击按钮分配角色
+  saveRoleRight(){
+    if(!this.setRoleId){
+      return this.$message.error('请选择要分配的角色')
+      }
+      var that = this
+      this.$http.put(`users/${this.userIn.id}/role`,{rid:this.setRoleId}).then(function(result){
+      var res = result.data
+      if(res.meta.status !== 200)
+        return that.$message.error('更新角色失败')
+      that.$message.success('更新角色成功')
+      that.getUserList()
+      that.setRoledialogVisible = false
+    })
+    },
+
+    //设置分配角色对话框关闭事件 
+    setRoleClose(){
+      this.setRoleId = ''
+      this.userIn ={}
+    }
+      
   }
 }
 </script>
