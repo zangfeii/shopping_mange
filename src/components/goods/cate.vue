@@ -29,7 +29,7 @@
               <el-tag size='mini' type='warning' v-else>三级</el-tag>    
           </template>
 
-          <template slot="do" slot-scope="scope">
+          <template slot="do" >
               <el-button type='primary' size='mini' icon='el-icon-edit'>编写</el-button>
               <el-button type='danger' size='mini' icon='el-icon-delete'>删除</el-button>
           </template>
