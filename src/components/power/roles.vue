@@ -12,7 +12,7 @@
         <!-- 添加角色按钮区 先行 后列  行属性gutter 列之间的距离 -->
         <el-row>
             <el-col>
-                <el-button type='primary'>添加角色</el-button>
+                <el-button type='primary' @click="addRoleDialog">添加角色</el-button>
             </el-col>
         </el-row>
 
@@ -48,8 +48,8 @@
             <el-table-column label='角色描述' prop='roleDesc'></el-table-column>
             <el-table-column label='操作' width='300px'>
                 <template slot-scope="scope">
-                   <el-button size='mini' type="primary" icon="el-icon-edit">编辑</el-button>
-                   <el-button size='mini' type="danger" icon="el-icon-delete">删除</el-button>
+                   <el-button size='mini' type="primary" icon="el-icon-edit" @click="ater(scope.row)">修改</el-button>
+                   <el-button size='mini' type="danger" icon="el-icon-delete" @click="deleteRole(scope.row)">删除</el-button>
                    <el-button size='mini' type="warning" icon="el-icon-setting" @click="showRightDialog(scope.row)">分配权限</el-button>
                 </template>
             </el-table-column>
@@ -66,6 +66,42 @@
           <el-button type="primary" @click="allotRights">确 定</el-button>
          </span>
     </el-dialog>
+
+  <!-- 添加角色对话框 -->
+  <el-dialog title="添加角色" :visible.sync="addRoledialogVisible" width="40%" @close='addRoleClose'>
+  <!-- //添加角色form表单 -->
+    <el-form :model="addRuleForm" :rules="addRules" ref="addRuleFormRef" label-width="100px">
+      <el-form-item label="角色名称" prop="roleName">
+        <el-input v-model="addRuleForm.roleName"></el-input>
+      </el-form-item>
+
+      <el-form-item label="角色描述" prop="roleDesc">
+        <el-input v-model="addRuleForm.roleDesc"></el-input>
+      </el-form-item>
+    </el-form>
+    <!-- Dialog的底部 -->
+  <span slot="footer" class="dialog-footer">
+    <el-button @click="addRoledialogVisible = false">取 消</el-button>
+    <el-button type="primary" @click="addRole">确 定</el-button>
+  </span>
+</el-dialog>
+
+<!-- 修改角色 -->
+  <el-dialog title="提示" :visible.sync="aterdialogVisible" width="40%">
+     <el-form :model="queryRole" :rules="aterRules" ref="aterRuleFormRef" label-width="100px">
+      <el-form-item label="角色名称" prop="roleName">
+        <el-input v-model="queryRole.roleName"></el-input>
+      </el-form-item>
+
+      <el-form-item label="角色描述" prop="roleDesc">
+        <el-input v-model="queryRole.roleDesc"></el-input>
+      </el-form-item>
+    </el-form>
+    <span slot="footer" class="dialog-footer">
+      <el-button @click="aterdialogVisible = false">取 消</el-button>
+      <el-button type="primary" @click="modif">确 定</el-button>
+    </span>
+  </el-dialog>
 
   </div>
 </template>
@@ -85,13 +121,43 @@ export default {
             label:'authName',
             children:'children'
         },
+        //添加角色对象
+        addRuleForm:{
+          roleName:'',
+          roleDesc:''
+        },
+        queryRole:{
+          roleName:'',
+          roleDesc:''
+        },
+        //添加角色的对话框弹出
+        addRoledialogVisible:false,
+        //修改角色的对话框
+        aterdialogVisible:false,
         //默认选中的树节点的值的id数组
         defKeys:[],
         // 点击分配角色权限的角色id
-        roleId:''
+        roleId:'',
+        addRules:{
+          roleName:[
+             { required: true, message: '请输入角色名称', trigger: 'blur' }
+          ],
+          roleDesc:[
+             { required: true, message: '请输入角色角色描述', trigger: 'blur' }
+          ]
+        },
+        aterRules:{
+           roleName:[
+             { required: true, message: '请输入角色名称', trigger: 'blur' }
+          ],
+          roleDesc:[
+             { required: true, message: '请输入角色角色描述', trigger: 'blur' }
+          ]
+        }
       }
   },
   created() {
+      //获取角色列表
       this.getRolesList()
   },
   methods: {
@@ -173,7 +239,87 @@ export default {
         this.$message.success('分配权限成功')
         this.getRolesList()
         this.setRightdialogVisible = false
+    },
+    //添加角色对话框
+    addRoleDialog(){
+      this.addRoledialogVisible = true
+    },
+    // 添加角色后离开时的操作
+    addRoleClose(){ 
+      this.$refs.addRuleFormRef.resetFields();
+    },
+    //添加角色
+    addRole(){
+      this.$refs.addRuleFormRef.validate(async valid =>{
+      if(!valid) return
+      var that = this
+      this.$http.post('roles',{
+      roleName:this.addRuleForm.roleName,
+      roleDesc:this.addRuleForm.roleDesc
+    }).then(function(result){
+      var res = result.data
+      if(res.meta.status !== 201)
+        return that.$message.error('创建'+that.addRuleForm.roleName+'角色失败')
+      that.getRolesList()
+      that.$message.success('创建'+that.addRuleForm.roleName+'角色成功')
+      that.addRoledialogVisible = false
+         })
+      })
+     
+    },
 
+   async deleteRole(role){
+    const  result = await this.$confirm('此操作将永久删'+role.roleName+'角色', '是否继续?', '提示', {
+          confirmButtonText: '确定',
+          cancelButtonText: '取消',
+          type: 'warning'
+        }).catch(err => err)
+        // console.log(role.data);
+        if(result === 'cancel'){
+          console.log(role.id);
+         return this.$message.info('取消删除'+role.roleName+'角色')
+        }   
+        var that = this
+        this.$http.delete(`roles/${role.id}`).then(function(result){
+          const res = result.data
+          if(res.meta.status !== 200){
+            console.log(res);
+            return that.$message.error('删除'+role.roleName+'角色失败')
+          }
+           
+          that.getRolesList()
+          that.$message.success('删除'+role.roleName+'角色成功')
+        })
+    },
+    //修改前查询角色信息
+    async  ater(role){
+     this.aterdialogVisible = true
+     const {data:res} = await this.$http.get(`roles/${role.id}`)
+     if(res.meta.status !== 200)
+       return 
+     this.queryRole = res.data
+    //  console.log(this.queryRole);
+     
+    },
+    //修改信息
+  async  modif(){
+      this.$refs.aterRuleFormRef.validate(async valid =>{
+        if(!valid) return
+        const {data:res} = await this.$http.put(`roles/${this.queryRole.roleId}`,{
+          roleName:this.queryRole.roleName,
+          roleDesc:this.queryRole.roleDesc
+        })
+        
+        if(res.meta.status !== 200){
+          // console.log(this.queryRole.roleId);
+          return this.$message.error('修改信失败')
+        }
+        this.$message.success('修改信息成功')
+        this.getRolesList()
+        this.aterdialogVisible = false
+
+      })
+     
     }
   },
 }
