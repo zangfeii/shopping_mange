@@ -25,7 +25,20 @@
             <el-button type='primary' size='mini' :disabled='isBtnDisable' @click="addPropsdialogVisible =true">添加参数</el-button>
              <!-- 动态参数的表格 -->
              <el-table :data="manyData" border stripe>
-                 <el-table-column type='expand'></el-table-column>
+                 <el-table-column type='expand'>
+                   <template slot-scope="scope">
+                      <!-- 循环渲染Tag标签 -->
+                     <el-tag closable @close='close(index,scope.row)' v-for="(item, index) in scope.row.attr_vals" :key="index">
+                       {{item}}
+                     </el-tag>
+                      <!-- 输入文本框 -->
+                      <!-- inputVisible和inputValue每个参数的都是一样的 需要分配不同的 避免点击一个 其他的参数也会有响应 -->
+                     <el-input class="input-new-tag" v-if="scope.row.inputVisible" v-model="scope.row.inputValue" ref="saveTagInput"
+                     size="small" @keyup.enter.native="handleInputConfirm(scope.row)" @blur="handleInputConfirm(scope.row)">
+                     </el-input>
+                     <el-button v-else class="button-new-tag" size="small" @click="showInput(scope.row)">+ New Tag</el-button>
+                   </template>
+                 </el-table-column>
                  <el-table-column type='index'></el-table-column>
                  <el-table-column label='参数名称' prop='attr_name'></el-table-column>
                  <el-table-column label='操作'>
@@ -40,7 +53,20 @@
             <el-button type='primary' size='mini' :disabled='isBtnDisable'  @click="addPropsdialogVisible = true">添加属性</el-button>
             <!-- 静态属性的表格 -->
             <el-table :data="onlyData" border stripe>
-                 <el-table-column type='expand'></el-table-column>
+                 <el-table-column type='expand'>
+                   <template slot-scope="scope">
+                      <!-- 循环渲染Tag标签 -->
+                     <el-tag closable @close='close(index,scope.row)' v-for="(item, index) in scope.row.attr_vals" :key="index">
+                       {{item}}
+                     </el-tag>
+                      <!-- 输入文本框 -->
+                      <!-- inputVisible和inputValue每个参数的都是一样的 需要分配不同的 避免点击一个 其他的参数也会有响应 -->
+                     <el-input class="input-new-tag" v-if="scope.row.inputVisible" v-model="scope.row.inputValue" ref="saveTagInput"
+                     size="small" @keyup.enter.native="handleInputConfirm(scope.row)" @blur="handleInputConfirm(scope.row)">
+                     </el-input>
+                     <el-button v-else class="button-new-tag" size="small" @click="showInput(scope.row)">+ New Tag</el-button>
+                   </template>
+                 </el-table-column>
                  <el-table-column type='index'></el-table-column>
                  <el-table-column label='属性名称' prop='attr_name'></el-table-column>
                  <el-table-column label='操作'>
@@ -107,7 +133,11 @@ export default {
          onlyData:[],
          addPropsdialogVisible:false,
          updatePropsdialogVisible:false,
-         //添加属性或者参数的数据对象
+        //  //控制文本框和按钮的切换
+        //  inputVisible:false,
+        // //  文本框输入内容的双向绑定
+        //  inputValue:"",
+        //  //添加属性或者参数的数据对象
          addForm:{
              attr_name:''
          },
@@ -176,6 +206,8 @@ export default {
          //判断是否选中的是三级分类,只能修改三级分类的参数
          if(this.selectCatekeys.length !== 3){
              this.selectCatekeys = []
+             this.manyData = [],
+             this.onlyData = []
              return
          }
          console.log(this.selectCatekeys);
@@ -185,8 +217,16 @@ export default {
             
              if(res.meta.status !== 200)
                return that.$message.error('获取该分类分级参数失败')
+            
+            // 判断获取的是动态参数还是静态参数
+            res.data.forEach(item =>{
+             item.attr_vals  = item.attr_vals? item.attr_vals.split(' '):[]
+              //  为每个参数的静态参数或者动态参数添加唯一的属性,避免所有的添加参数的事件绑定在一起
+             item.inputValue = ''
+             item.inputVisible = false
+            })
+                // res.data.attr_vals = res.data.attr_vals.split(' ')
             console.log(res.data);
-            //判断获取的是动态参数还是静态参数
             if(that.activeName ==='many'){
                 that.manyData = res.data
             } else{
@@ -276,6 +316,42 @@ export default {
         }
         this.$message.success('删除参数成功')
         this.getParamsData()
+      },
+
+      saveAttrVals(row){
+          var that = this
+          this.$http.put(`categories/${this.cateId}/attributes/${row.attr_id}`,{
+            attr_name:row.attr_name,
+            attr_sel:row.attr_sel,
+            attr_vals:row.attr_vals.join(' ')
+          }).then(function(result){
+            var res = result.data
+            if(res.meta.status !==200)
+              return that.$message.error('修改参数失败')
+            that.$message.success('修改参数成功')
+          })
+      },
+      // 文本框失去焦点或者按下enter启动
+      handleInputConfirm(row){
+         //判断输入内容后是否还有内容 并重置
+          if(row.inputValue.trim().length ===0){
+            row.inputValue = ''
+            row.inputVisible = false
+            return
+          }
+          row.attr_vals.push(row.inputValue.trim())
+          row.inputValue = ''
+          row.inputVisible = false
+          this.saveAttrVals(row)
+
+      },
+      showInput(row){
+        row.inputVisible = true
+      },
+      
+      close(index,row){
+        row.attr_vals.splice(index,1)
+        this.saveAttrVals(row)
       }
 
   },
@@ -286,5 +362,13 @@ export default {
   .row1{
       margin-top: 4px;
       /* padding: 12px; */
+  }
+
+  .el-tag{
+    margin :10px;
+  }
+
+  .input-new-tag{
+    width: 100px;
   }
 </style>
