@@ -8,6 +8,15 @@ import '../src/assets/css/global.css';
 import '../src/assets/css/fonts/iconfont'
 import ZkTable from 'vue-table-with-tree-grid'
 
+import VueQuillEditor from 'vue-quill-editor'
+
+// require styles
+import 'quill/dist/quill.core.css'
+import 'quill/dist/quill.snow.css'
+import 'quill/dist/quill.bubble.css'
+
+Vue.use(VueQuillEditor, /* { default global options } */ )
+
 //注册为tree-table为全局组件
 Vue.use(ZkTable)
 

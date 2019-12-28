@@ -11,8 +11,8 @@
        <!-- 添加搜索商品 -->
        <el-row :gutter='20'>
          <el-col :span='8'>
-            <el-input placeholder="请输入内容"  class="input-with-select">
-              <el-button slot="append" icon="el-icon-search"></el-button>
+            <el-input v-model="queryGoodsList.query" laceholder="请输入内容"  class="input-with-select" clearable @clear = 'getGoodList'>
+              <el-button slot="append" icon="el-icon-search" @click="getGoodList"></el-button>
             </el-input>
          </el-col>
          <el-col :span='3'>
@@ -22,10 +22,10 @@
        <!-- 商品列表 -->
        <el-table :data='goodList' max-height="600">
            <el-table-column type='index'></el-table-column>
-           <el-table-column label='商品名称' prop='goods_name' width='750' ></el-table-column>
-           <el-table-column label='商品价格(元)' prop='goods_price' ></el-table-column>
-           <el-table-column label='商品重量' prop='goods_weight' ></el-table-column>
-           <el-table-column label='创建时间' prop='add_time'  >
+           <el-table-column label='商品名称' prop='goods_name'></el-table-column>
+           <el-table-column label='商品价格(元)' prop='goods_price' width='95' ></el-table-column>
+           <el-table-column label='商品重量' prop='goods_weight' width='70' ></el-table-column>
+           <el-table-column label='创建时间' prop='add_time' width='140' >
              <template slot-scope="scope">
                {{scope.row.add_time | dateFormat}}
              </template>
@@ -33,7 +33,7 @@
            <el-table-column label='操作' >
              <template slot-scope="scope">
                <el-button type="primary" icon="el-icon-edit" size='mini' @click="editGoods(scope.row.goods_id)"></el-button>
-               <el-button type="danger" icon="el-icon-delete" size='mini'></el-button>
+               <el-button type="danger" icon="el-icon-delete" size='mini' @click ='deleteGooods(scope.row.goods_id)'></el-button>
              </template>  
            </el-table-column>
        </el-table>
@@ -43,47 +43,7 @@
            </el-pagination>
     </el-card>
 
-    <!-- 添加商品Dialog -->
-    <el-dialog title="添加商品" :visible.sync="addGoodsdialogVisible" width="50%">
-      <!-- 添加商品的表单 -->
-        <el-form :model="addGoodsList" :rules="addrules" ref="addruleFormRef" label-width="100px" class="demo-ruleForm">
-          <el-form-item label="商品名称" prop="goods_name">
-            <el-input v-model="addGoodsList.goods_name"></el-input>
-          </el-form-item>
-
-           <el-form-item label="goods_cat" prop="goods_cat">
-            <el-input v-model="addGoodsList.goods_name"></el-input>
-          </el-form-item>
-
-           <el-form-item label="价格" prop="goods_price">
-            <el-input v-model="addGoodsList.goods_price"></el-input>
-          </el-form-item>
-
-           <el-form-item label="数量" prop="goods_number">
-            <el-input v-model="addGoodsList.goods_number"></el-input>
-          </el-form-item>
-
-           <el-form-item label="重量" prop="goods_weight">
-            <el-input v-model="addGoodsList.goods_weight"></el-input>
-          </el-form-item>
-
-          <el-form-item label="简单介绍" prop="goods_introduce">
-            <el-input v-model="addGoodsList.goods_introduce"></el-input>
-          </el-form-item>
-
-           <!-- <el-form-item label="简单介绍" prop="goods_introduce">
-            <el-input v-model="addGoodsList.goods_introduce"></el-input>
-          </el-form-item>
-
-           <el-form-item label="简单介绍" prop="goods_introduce">
-            <el-input v-model="addGoodsList.goods_introduce"></el-input>
-          </el-form-item> -->
-        </el-form>
-      <span slot="footer">
-        <el-button @click="dialogVisible = false">取 消</el-button>
-      <el-button type="primary" @click="dialogVisible = false">确 定</el-button>
-  </span>
-</el-dialog>
+    
 
    <!-- 查询商品Dialog -->
     <el-dialog title="修改商品" :visible.sync="editGoodsdialogVisible" width="50%">
@@ -141,7 +101,6 @@ export default {
           },
           goodList:[],
           total:0,
-          addGoodsdialogVisible:false,
           editGoodsdialogVisible:false,
           addGoodsList:{
             goods_name:'',
@@ -193,8 +152,9 @@ export default {
                 that.$message.success('获取商品列表成功')  
             })
         },
+
         showAddGoodsDialog(){
-          this.addGoodsdialogVisible = true
+          this.$router.push('goods/add')
         },
         handleSizeChange(newsize){
            this.queryGoodsList.pagesize = newsize
@@ -206,6 +166,7 @@ export default {
           this.getGoodList()
           console.log('page'+newPage);
         },
+
         editGoods(goodId){
           this.editGoodsdialogVisible = true
           var that = this
@@ -218,9 +179,26 @@ export default {
             that.editGoodsList = res.data
             console.log(res);
             that.$message.success('获取该商品的信息成功')
-           
           })
-        
+        },
+
+     async  deleteGooods(goodId){
+     const confirmResult = await     this.$confirm('此操作将永久删除该商品, 是否继续?', '提示', {
+          confirmButtonText: '确定',
+          cancelButtonText: '取消',
+          type: 'warning'
+        }).catch(err => err)
+        if(confirmResult !== 'confirm'){
+           return this.$message.info('已经取消删除')
+        }
+         var that  =  this 
+         this.$http.delete(`goods/${goodId}`).then(function(result){
+            var res = result.data
+            if(res.meta.status !== 200)
+              return that.$message.info('删除该用户失败')
+            that.$message.success('删除该用户成功')
+            that.getGoodList()
+          })
         }
 
     },

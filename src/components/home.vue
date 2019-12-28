@@ -94,11 +94,8 @@ export default {
     },
   created() {
     //   生命周期函数,页面打开就获取数据
-      
       this.getMenuList()
       this.activePath = window.sessionStorage.getItem('activePath')
-      
-      
   },
     
   methods: {
