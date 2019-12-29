@@ -22,7 +22,10 @@ const Add = () =>
     import ('../components/goods/add.vue')
 const Order = () =>
     import ('../components/order/order.vue')
+const Report = () =>
+    import ('../components/report/report.vue')
 Vue.use(VueRouter)
+
 
 const routes = [
     // {
@@ -78,6 +81,9 @@ const routes = [
         }, {
             path: '/orders',
             component: Order
+        }, {
+            path: '/reports',
+            component: Report
         }]
     },
 

@@ -7,8 +7,11 @@ import axios from 'axios';
 import '../src/assets/css/global.css';
 import '../src/assets/css/fonts/iconfont'
 import ZkTable from 'vue-table-with-tree-grid'
+import NProgress from 'nprogress'
+import 'nprogress/nprogress.css'
+import VueQuillEditor from 'vue-quill-editor';
 
-import VueQuillEditor from 'vue-quill-editor'
+// var echarts = require('echarts');
 
 // require styles
 import 'quill/dist/quill.core.css'
@@ -29,13 +32,19 @@ Vue.prototype.$http = axios;
 // Vue.prototype.$Message = Message;
 
 // 通过axios请求拦截添加token,保证拥有获取数据的权限
+// 在request拦截器中展示进度条 NProgress.start()
 axios.interceptors.request.use(config => {
-    console.log(config);
-    config.headers.Authorization = window.sessionStorage.getItem('token');
-    // 最后必须返回config
-    return config;
+        // console.log(config);
+        NProgress.start()
+        config.headers.Authorization = window.sessionStorage.getItem('token');
+        // 最后必须返回config
+        return config;
+    })
+    // 在request拦截器中隐藏进度条 NProgress.done()
+axios.interceptors.response.use(config => {
+    NProgress.done()
+    return config
 })
-
 Vue.filter('dateFormat', function(originVal) {
     const dt = new Date(originVal)
     var y = dt.getFullYear()
