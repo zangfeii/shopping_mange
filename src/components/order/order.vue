@@ -10,7 +10,7 @@
     <el-card>
       <el-row>
         <el-col>
-          <el-input placeholder="请输入内容" v-model="input3" class="input-with-select">
+          <el-input placeholder="请输入内容"  class="input-with-select">
           <el-button slot="append" icon="el-icon-search"></el-button>
         </el-input>
         </el-col>
@@ -50,8 +50,7 @@
     <el-dialog title="修改地址" :visible.sync="updateUserAddressdialogVisible" width="40%" @close = 'closeUpdateDialog'>
       <el-form :model="addAdressRuleForm" :rules="addAdressRules" ref="addAdressRuleFormRef" label-width="100px" class="demo-ruleForm">
         <el-form-item label="省市区/县" prop="address1">
-          <el-cascader v-model="addAdressRuleForm.address1" :options="cityData" :props="cascaderProp"
-          @change="handleChange">
+          <el-cascader v-model="addAdressRuleForm.address1" :options="cityData" :props="cascaderProp">
           </el-cascader>
         </el-form-item>
         <el-form-item label="详细地址" prop="address2">
@@ -66,7 +65,7 @@
 
     <!-- 物流信息查看 -->
     <el-dialog title = '物流信息' :visible.sync="processsAddressdialogVisible" width = '40%'>
-      <el-timeline :reverse="reverse">
+      <el-timeline >
         <el-timeline-item v-for="(activity, index) in processInfo" :key="index" :timestamp="activity.time">
           {{activity.context}}
         </el-timeline-item>

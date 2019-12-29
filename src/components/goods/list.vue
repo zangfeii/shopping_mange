@@ -38,9 +38,9 @@
            </el-table-column>
        </el-table>
           <!-- 页码       -->
-             <el-pagination @size-change="handleSizeChange" @current-change="handleCurrentChange" :current-page="queryGoodsList.pagenum"
-             :page-sizes="[5, 10, 30, 40]" :page-size="queryGoodsList.pagesize" layout="total, sizes, prev, pager, next, jumper" :total="total">
-           </el-pagination>
+          <el-pagination @size-change="handleSizeChange" @current-change="handleCurrentChange" :current-page="queryGoodsList.pagenum"
+          :page-sizes="[5, 10, 30, 40]" :page-size="queryGoodsList.pagesize" layout="total, sizes, prev, pager, next, jumper" :total="total">
+          </el-pagination>
     </el-card>
 
     
@@ -48,7 +48,7 @@
    <!-- 查询商品Dialog -->
     <el-dialog title="修改商品" :visible.sync="editGoodsdialogVisible" width="50%">
       <!-- 查询商品的表单 -->
-        <el-form :model="editGoodsList" :rules="editrules" ref="editruleFormRef" label-width="100px" class="demo-ruleForm">
+        <el-form :model="editGoodsList"  ref="editruleFormRef" label-width="100px" class="demo-ruleForm">
           <el-form-item label="商品名称" prop="goods_name">
             <el-input v-model="editGoodsList.goods_name"></el-input>
           </el-form-item>
