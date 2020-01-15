@@ -105,6 +105,5 @@ router.beforeEach((to, from, next) => {
     if (!getToken)
         return next("/login");
     else next()
-
 })
 export default router

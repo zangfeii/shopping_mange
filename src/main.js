@@ -45,6 +45,7 @@ axios.interceptors.response.use(config => {
     NProgress.done()
     return config
 })
+
 Vue.filter('dateFormat', function(originVal) {
     const dt = new Date(originVal)
     var y = dt.getFullYear()
